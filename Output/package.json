@@ -1,0 +1,22 @@
+{
+  "name": "hello-world-static",
+  "version": "1.0.0",
+  "description": "A minimalist static web page that displays a standard 'Hello, World!' greeting",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve . -l 3000",
+    "build": "echo 'No build step required for static HTML/CSS'",
+    "test": "node test.js"
+  },
+  "devDependencies": {
+    "serve": "^14.2.1"
+  },
+  "keywords": [
+    "static",
+    "html",
+    "css",
+    "hello-world"
+  ],
+  "author": "Developer",
+  "license": "MIT"
+}

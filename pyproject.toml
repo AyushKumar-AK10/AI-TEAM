@@ -1,0 +1,27 @@
+[project]
+name = "ai-team-2-0"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "langchain>=1.4.6",
+    "langchain-google-genai>=4.4.2",
+    "langgraph>=1.2.16",
+    "load-dotenv>=0.1.0",
+    "path>=17.1.1",
+]
+
+[project.scripts]
+ai-team-2-0 = "ai_team_2_0:main"
+
+[build-system]
+requires = ["uv_build>=0.12.5,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "mypy>=2.4.0",
+    "pytest>=9.1.1",
+    "ruff>=0.17.1",
+]
