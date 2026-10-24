@@ -8,7 +8,7 @@ from .graph.graph import graph
 async def async_main() -> None:
     config = {"configurable": {"thread_id": "ba-session-1"}}
     graph_input = {
-        "userReq": "Build a website for Pokemon.No Db no reddis. Don't ask further questions"
+        "userReq": "Build a basic hello world website.No Db no reddis. Don't ask further questions"
     }
 
     async def run_graph(input_value):

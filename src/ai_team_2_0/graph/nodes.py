@@ -1,8 +1,8 @@
 import json
-from langchain_core.messages import AIMessage, HumanMessage, RemoveMessage,ToolMessage
+from langchain_core.messages import AIMessage, HumanMessage,ToolMessage
 from langgraph.graph.message import REMOVE_ALL_MESSAGES
 from langgraph.types import interrupt
-from ..config import architectPrompt, baPrompt, devPrompt, testerPrompt, architectReviewPrompt
+from ..config import architectPrompt, baPrompt, devPrompt, testerPrompt, architectReviewPrompt, githubPrompt
 from ..models.gemini import devllm, llm, termllm
 from ..tools.fileCreation import fc
 from ..tools.terminal import execTerminal
@@ -105,3 +105,28 @@ async def architectReview(state:State):
             'messages': [response],
             'terminalRequester':'architect'
         }
+
+# Github Node
+async def githubNode(state:State):
+    prompt = githubPrompt.githubPrompt
+    if not state.get('githubApproval'):
+        approval = interrupt("Do you want to Publish to GitHub (Y/N)?")
+        state['githubApproval']= HumanMessage(content=approval)
+    messages = state.get('messages',[])
+    history = []
+    if messages and isinstance(messages[-1], ToolMessage):
+        history = messages
+    response = None
+    if approval:
+        response = await termllm.ainvoke([prompt,approval,*history])
+        if not response.tool_calls:
+            state['githubResponse']=response
+        return{
+            'terminalRequester': 'github',
+            'messages': [response]
+        }
+    else:
+        return{
+            "githubResponse": AIMessage(content="The user didn't opt for Github Publish")
+        }
+

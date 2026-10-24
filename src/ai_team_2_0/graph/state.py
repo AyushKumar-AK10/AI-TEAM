@@ -1,4 +1,4 @@
-from langchain_core.messages import AIMessage
+from langchain_core.messages import AIMessage,HumanMessage
 from langgraph.graph import MessagesState
 
 from ..Output.output import devOutput
@@ -14,3 +14,4 @@ class State(MessagesState):
     architectReview: AIMessage
     archReview: AIMessage
     terminalRequester: str
+    githubApproval: HumanMessage

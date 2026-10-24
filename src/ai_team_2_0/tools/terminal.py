@@ -7,7 +7,7 @@ PROJECT_DIR = Path('./Output').resolve()
 
 @tool
 def execTerminal(command: str) -> str:
-    """Run the terminal with the command"""
+    """Run a shell command from the repository root."""
     try:
         result = subprocess.run(
             command,

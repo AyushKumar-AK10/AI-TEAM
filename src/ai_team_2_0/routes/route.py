@@ -10,13 +10,20 @@ def tester_dev(state:State):
     
 
 def architectReview_dev(state:State):
-    if state.get('architectReview') and state.get('architectReview').content=='APPROVED':
+    if state['messages'][-1].tool_calls:
+        return "tool_node"
+    elif state.get('architectReview') and state.get('architectReview').content=='APPROVED':
         return "END"
-    elif state.get('architectReview'):
-        return "retry"
-    return "tool_node"
+    return "retry"
 
 def terminalRoute(state:State):
     if state.get('terminalRequester')=="tester":
         return "tester"
-    return "architect"
+    elif state.get('terminalRequester')=="architect":
+        return "architect"
+    return 'github'
+
+def gitHubRouter(state:State):
+    if state['messages'][-1].tool_calls:
+        return "terminal"
+    return "END"
