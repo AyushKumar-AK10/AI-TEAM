@@ -48,7 +48,14 @@ async def architectNode(state: State):
 async def developerNode(state:State):
     """Generate the project files."""
     prompt = devPrompt.DevPrompt
-    response = await devllm.ainvoke([prompt,state['architectResponse'].model_dump_json()])
+    history = []
+    if state.get('devResponse'):
+        history.append(f'Previous Developer Response{state.get('devResponse').model_dump_json()}')
+    if state.get('testReview'):
+        history.append(f'Tester Review: {state.get('testReview').content}')
+    if state.get('archReview'):
+        history.append(f'Architect Review: {state.get('archReview').content}')
+    response = await devllm.ainvoke([prompt,state['architectResponse'].model_dump_json(),*history])   
     await fc.ainvoke({"devOutput": json.loads(response.model_dump_json())['output']})
     return{
         "devResponse": response
@@ -58,12 +65,16 @@ async def developerNode(state:State):
 async def testerNode(state: State):
     """Run project checks through the terminal and report evidence-based results."""
     prompt = testerPrompt.TesterPrompt
-    response = await termllm.ainvoke([prompt,HumanMessage(state['devResponse'].model_dump_json()),*state.get('messages',[])])
+    history = state.get('messages', [])
+    if not history or not isinstance(history[-1], ToolMessage):
+        history = []
+    response = await termllm.ainvoke([prompt,HumanMessage(state['devResponse'].model_dump_json()),*history])
     if not response.tool_calls:
         result = json.loads(response.content[0]['text'])
         return{
             "testResponse": AIMessage(content=result['status']),
-            "messages": [RemoveMessage(id=REMOVE_ALL_MESSAGES)]
+            "testReview": AIMessage(content=result['description']),
+            "messages": [response]
         }
     return{
         "messages": [response],
@@ -77,7 +88,6 @@ async def architectReview(state:State):
     history = state.get('messages', [])
     if not history or not isinstance(history[-1], ToolMessage):
         history = []
-
     response = await termllm.ainvoke([prompt,
     state['baResponse'],
     state['architectResponse'],
@@ -87,7 +97,8 @@ async def architectReview(state:State):
         result = json.loads(response.content[0]['text'])
         return{
             'architectReview': AIMessage(content=result['status']),
-            'messages': [RemoveMessage(id=REMOVE_ALL_MESSAGES)]
+            'archReview': AIMessage(content=result['description']),
+            'messages': [response]
         }
     else:
         return{

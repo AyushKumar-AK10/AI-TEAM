@@ -10,5 +10,7 @@ class State(MessagesState):
     architectResponse: AIMessage
     devResponse: devOutput
     testResponse: AIMessage
+    testReview: AIMessage
     architectReview: AIMessage
+    archReview: AIMessage
     terminalRequester: str

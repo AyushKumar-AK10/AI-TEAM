@@ -7,20 +7,42 @@ from .graph.graph import graph
 
 async def async_main() -> None:
     config = {"configurable": {"thread_id": "ba-session-1"}}
-    result = await graph.ainvoke(
-        {
-            "userReq": "Build a basic hello world website. Don't ask further questions"
-        },
-        config=config,
-    )
+    graph_input = {
+        "userReq": "Build a website for Pokemon.No Db no reddis. Don't ask further questions"
+    }
 
-    while result.get("__interrupt__"):
-        print(result["__interrupt__"][0].value)
-        clarification = input("Your clarification: ")
-        result = await graph.ainvoke(
-            Command(resume=clarification),
+    async def run_graph(input_value):
+        async for event in graph.astream(
+            input_value,
             config=config,
+            stream_mode="debug",
+        ):
+            event_type = event.get("type")
+            payload = event.get("payload", {})
+            node_name = payload.get("name", "unknown")
+
+            if event_type == "task":
+                print(f"Starting node: {node_name}")
+            elif event_type == "task_result":
+                status = "failed" if payload.get("error") else "finished"
+                print(f"Node {status}: {node_name}")
+
+        snapshot = await graph.aget_state(config)
+        pending_interrupt = next(
+            (
+                interrupt
+                for task in snapshot.tasks
+                for interrupt in task.interrupts
+            ),
+            None,
         )
+        return snapshot.values, pending_interrupt
+
+    result, pending_interrupt = await run_graph(graph_input)
+    while pending_interrupt:
+        print(pending_interrupt.value)
+        clarification = input("Your clarification: ")
+        result, pending_interrupt = await run_graph(Command(resume=clarification))
 
     print(result['devResponse'].model_dump_json(indent=2))
     print(result["testResponse"].content)
